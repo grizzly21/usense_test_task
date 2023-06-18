@@ -1,5 +1,6 @@
 import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import {debounceTime, distinctUntilChanged, fromEvent, map, Subscription} from "rxjs";
+import {PasswordStrength} from "../enums/password-strength.enum";
 
 @Component({
   selector: 'app-password-input',
@@ -10,7 +11,7 @@ export class PasswordInputComponent implements AfterViewInit, OnDestroy{
   @ViewChild('passwordInput') passwordInput?: ElementRef;
 
   password: string = '';
-  passwordStrength!: PasswordStrength;
+  passwordStrength: PasswordStrength = PasswordStrength.EMPTY;
   private inputSub$!: Subscription;
 
   ngAfterViewInit() {
@@ -19,7 +20,7 @@ export class PasswordInputComponent implements AfterViewInit, OnDestroy{
       'input')
       .pipe(
         map(event => event.target?.value),
-        debounceTime(400),
+        debounceTime(300),
         distinctUntilChanged()
       );
     this.inputSub$ = input$.subscribe(
@@ -31,18 +32,24 @@ export class PasswordInputComponent implements AfterViewInit, OnDestroy{
   }
 
   checkPasswordStrength(){
-    if(!this.password){
+    if (!this.password) {
       this.passwordStrength = PasswordStrength.EMPTY;
-    }else if (this.password.length < 8){
-      this.passwordStrength = PasswordStrength.SHORT
-    }else if (
+    } else if (this.password.length < 8) {
+      this.passwordStrength = PasswordStrength.SHORT;
+    } else if (
       /[A-Za-z]/.test(this.password) &&
       /[0-9]/.test(this.password) &&
-      /[!@#$%^&*]/.test(this.password)
-    ){
-      this.passwordStrength = PasswordStrength.STRONG
-    }else {
-      this.passwordStrength = PasswordStrength.MEDIUM
+      /[!@#$%^&*/.,]/.test(this.password)
+    ) {
+      this.passwordStrength = PasswordStrength.STRONG;
+    } else if (
+      (/[A-Za-z]/.test(this.password) && /[!@#$%^&*/.,]/.test(this.password)) ||
+      (/[A-Za-z]/.test(this.password) && /[0-9]/.test(this.password)) ||
+      (/[0-9]/.test(this.password) && /[!@#$%^&*/.,]/.test(this.password))
+    ) {
+      this.passwordStrength = PasswordStrength.MEDIUM;
+    } else {
+      this.passwordStrength = PasswordStrength.EASY;
     }
 
     console.log("password strength is :", PasswordStrength[this.passwordStrength])
@@ -51,12 +58,4 @@ export class PasswordInputComponent implements AfterViewInit, OnDestroy{
   ngOnDestroy() {
     this.inputSub$.unsubscribe();
   }
-}
-
-enum PasswordStrength {
-  EMPTY,
-  SHORT,
-  EASY,
-  MEDIUM,
-  STRONG
 }
