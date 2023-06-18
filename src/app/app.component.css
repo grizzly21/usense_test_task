@@ -1,0 +1,19 @@
+.header{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid gainsboro;
+}
+
+.header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.container{
+  margin: 0 auto;
+  padding: 1rem;
+  width: 100%;
+  max-width: 1200px;
+}
